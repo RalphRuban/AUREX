@@ -148,97 +148,373 @@
   animation: energyFlow 2.5s linear infinite;
 }
 
-/* ================= CINEMATIC INTRO ================= */
-/* Cyber scanner: vertical beam sweeps the frame once */
-@keyframes introScannerSweep {
-  0% { top: -12%; opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { top: 112%; opacity: 0; }
+/* ================= CINEMATIC INTRO (v3 — laser unveil) ================= */
+/* Letters revealed by a left-to-right clip wipe + directional settle:
+   even letters rise, odd letters drop, so each one "clicks in" sequentially. */
+@keyframes introWipeA {
+  0% { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateY(14px); }
+  55% { opacity: 1; }
+  100% { opacity: 1; clip-path: inset(0 0% 0 0); transform: translateY(0); }
 }
-.intro-scanner-beam {
-  animation: introScannerSweep 1.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-/* Radar sweep disc */
-@keyframes introRadar {
-  to { transform: rotate(360deg); }
-}
-.intro-radar {
-  animation: introRadar 2.4s linear infinite;
-}
-
-@keyframes introRadarPing {
-  0% { transform: scale(0.3); opacity: 0.8; }
-  100% { transform: scale(1); opacity: 0; }
-}
-.intro-radar-ping {
-  animation: introRadarPing 2.4s ease-out infinite;
-}
-
-/* AUREX letters reveal one-by-one */
-@keyframes introLetterIn {
-  0% { opacity: 0; transform: translateY(26px) scale(1.6); filter: blur(8px); }
-  60% { opacity: 1; filter: blur(0); }
-  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+@keyframes introWipeB {
+  0% { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateY(-10px); }
+  55% { opacity: 1; }
+  100% { opacity: 1; clip-path: inset(0 0% 0 0); transform: translateY(0); }
 }
 .intro-letter {
   opacity: 0;
-  animation: introLetterIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-duration: 0.34s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: forwards;
+}
+.intro-letter-a { animation-name: introWipeA; }
+.intro-letter-b { animation-name: introWipeB; }
+
+/* Traveling laser beam: the head sweeps left→right over the wordmark with
+   a bright core + soft glow, leaving the letters revealed in its wake */
+.intro-beam {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  overflow: hidden;
+}
+@keyframes introBeamHead {
+  0% { left: -12%; opacity: 0; }
+  8% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { left: 112%; opacity: 0; }
+}
+.intro-beam-head {
+  opacity: 0;
+  animation: introBeamHead 0.95s cubic-bezier(0.4, 0, 0.2, 1) 0.05s forwards;
 }
 
-/* Logo pop-in right after the letters */
-@keyframes introLogoPop {
-  0% { opacity: 0; transform: scale(0.5) translateY(16px); filter: blur(10px) brightness(0.4); }
-  55% { opacity: 1; transform: scale(1.08) translateY(0); filter: blur(0) brightness(1.55); }
-  100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0) brightness(1); }
+/* Sparks igniting at the leading edge while letters reveal */
+@keyframes introSpark {
+  0%, 8% { opacity: 0; transform: translateY(-50%) scale(0.4); }
+  30% { opacity: 1; transform: translateY(-50%) scale(1.25); }
+  55%, 100% { opacity: 0; transform: translateY(-50%) scale(0.6); }
 }
-.intro-logo-pop {
-  animation: introLogoPop 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.intro-spark-l {
+  opacity: 0;
+  animation: introSpark 0.8s ease-out 0.12s forwards;
 }
-
-@keyframes introSubReveal {
-  0% { opacity: 0; transform: translateY(10px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-.intro-sub-reveal {
-  animation: introSubReveal 0.9s ease-out 0.55s forwards;
+.intro-spark-r {
+  opacity: 0;
+  animation: introSpark 0.8s ease-out 0.55s forwards;
 }
 
-@keyframes introParticleFloat {
-  0% { transform: translate(0, 0); opacity: 0; }
-  15% { opacity: 0.9; }
-  85% { opacity: 0.7; }
-  100% { transform: translate(var(--drift-x), var(--drift-y)); opacity: 0; }
+@keyframes introGrowX {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }
-.intro-particle {
-  animation: introParticleFloat var(--dur) ease-in-out infinite;
-  animation-delay: var(--delay);
+.intro-grow {
+  transform-origin: center;
+  animation: introGrowX 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.6s backwards;
 }
 
-@keyframes introProgress {
-  0% { width: 0%; opacity: 0.4; }
-  30% { width: 42%; opacity: 1; }
-  70% { width: 78%; opacity: 1; }
-  100% { width: 100%; opacity: 1; }
+@keyframes introFadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-.intro-progress {
-  animation: introProgress 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@keyframes introFadeOut {
-  to { opacity: 0; transform: scale(1.06); filter: blur(6px); }
-}
-.intro-fade-out {
-  animation: introFadeOut 0.55s ease-in forwards;
+.intro-fade-up {
+  opacity: 0;
+  animation: introFadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.75s forwards;
 }
 
-@keyframes introCornerPulse {
-  0%, 100% { opacity: 0.35; }
+@keyframes introEmblemIn {
+  0% { opacity: 0; transform: scale(0.82) translateY(14px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.intro-emblem {
+  opacity: 0;
+  animation: introEmblemIn 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Breathing halo behind the logo — always concentric with the emblem */
+@keyframes introLogoHalo {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.06); }
+}
+.intro-logo-halo {
+  background: radial-gradient(circle, rgba(0,168,255,0.22) 0%, rgba(0,168,255,0.08) 42%, transparent 70%);
+  animation: introLogoHalo 3s ease-in-out infinite;
+}
+
+/* Logo spring settle */
+@keyframes introLogoSettle {
+  0% { transform: scale(0.55); }
+  55% { transform: scale(1.06); }
+  78% { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+.intro-logo-settle {
+  animation: introLogoSettle 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.1s backwards;
+}
+
+/* Soft ambient aurora breathing behind the center */
+@keyframes introAurora {
+  0%, 100% { opacity: calc(var(--aurora-o, 0.5)); }
+  50% { opacity: calc(var(--aurora-o, 0.5) * 1.45); }
+}
+.intro-aurora {
+  animation: introAurora 4.5s ease-in-out infinite;
+}
+
+/* Corner tick */
+@keyframes introTick {
+  0%, 100% { opacity: 0.25; }
   50% { opacity: 1; }
 }
-.intro-corner {
-  animation: introCornerPulse 1.8s ease-in-out infinite;
+.intro-tick {
+  animation: introTick 2.4s ease-in-out infinite;
+}
+
+/* Hero exit — driven by inline opacity/scale transitions (cannot freeze) */
+.intro-hero-exit {
+  transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+/* ============ CINEMATIC AMBIENCE (v4) ============ */
+
+/* Drifting dust motes rising with a twinkle */
+@keyframes introStar {
+  0% { opacity: 0.1; transform: translateY(0); }
+  40% { opacity: 0.7; }
+  100% { opacity: 0; transform: translateY(var(--ty)); }
+}
+.intro-star {
+  opacity: 0;
+  box-shadow: 0 0 4px rgba(123, 216, 255, 0.8);
+  animation: introStar var(--dur) linear var(--delay) infinite;
+}
+
+/* Slow rotating god-rays behind the hero */
+@keyframes introRaySpin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+.intro-ray {
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg, transparent 55deg,
+    rgba(0, 168, 255, 0.06) 72deg,
+    transparent 90deg, transparent 190deg,
+    rgba(120, 220, 255, 0.05) 208deg,
+    transparent 225deg, transparent 322deg,
+    rgba(0, 168, 255, 0.04) 340deg,
+    transparent 360deg
+  );
+  animation: introRaySpin 26s linear infinite;
+}
+
+/* Static CRT scanlines */
+.intro-scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.035) 0px,
+    rgba(255, 255, 255, 0.035) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  mix-blend-mode: overlay;
+}
+
+/* A bright line wandering down the screen */
+@keyframes introScanPass {
+  0% { top: -14%; opacity: 0; }
+  12% { opacity: 0.45; }
+  88% { opacity: 0.45; }
+  100% { top: 112%; opacity: 0; }
+}
+.intro-scan-bar {
+  opacity: 0;
+  background: linear-gradient(to bottom, transparent, rgba(0, 168, 255, 0.09), transparent);
+  animation: introScanPass 5.5s linear infinite;
+}
+
+/* CRT warm-power-on rise (one-shot) */
+@keyframes introPowerOn {
+  0% { opacity: 0; }
+  12% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.intro-power {
+  opacity: 0;
+  background: linear-gradient(to top, rgba(0, 168, 255, 0.1), rgba(2, 11, 26, 0));
+  animation: introPowerOn 0.85s ease-out 0.05s both;
+}
+
+/* Camera drift — slow push-in on the hero */
+@keyframes introPan {
+  0% { transform: scale(1) translateY(0); }
+  100% { transform: scale(1.03) translateY(-5px); }
+}
+.intro-pan {
+  animation: introPan 4.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Terminus baseline drawing under the wordmark */
+@keyframes introBaseline {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.intro-baseline {
+  transform-origin: left center;
+  animation: introBaseline 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.55s backwards;
+}
+
+/* Self-drawing hex wireframe (dash normalized via pathLength=1) */
+@keyframes introHexDraw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+.intro-hex {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: introHexDraw 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Hex vertex nodes sparking in */
+@keyframes introHexNode {
+  0% { opacity: 0; }
+  60% { opacity: 1; }
+  100% { opacity: 0.85; }
+}
+.intro-hex-node {
+  opacity: 0;
+  animation: introHexNode 0.3s ease-out forwards;
+}
+
+/* Cinematic gloss sheen sweeping across the emblem */
+@keyframes introSheen {
+  0% { transform: translateX(-180%); opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateX(180%); opacity: 0; }
+}
+.intro-sheen {
+  background: linear-gradient(105deg, transparent 42%, rgba(230, 245, 255, 0.16) 50%, transparent 58%);
+  transform: translateX(-180%);
+  animation: introSheen 1s ease-in-out 0.5s both;
+}
+
+/* Emblem corner brackets snapping in */
+@keyframes introEmblemCorner {
+  0% { opacity: 0; transform: scale(0.5); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.intro-emblem-corner {
+  opacity: 0;
+  animation: introEmblemCorner 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Blinking readout cursor */
+@keyframes introBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.intro-cursor {
+  animation: introBlink 0.9s steps(2) infinite;
+}
+
+/* Cinematic letterbox close on exit (driven by inline transform transition) */
+.intro-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 11vh;
+  z-index: 2;
+  background: #020B1A;
+  transform: scaleY(0);
+  pointer-events: none;
+  will-change: transform;
+  transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.intro-bar-top {
+  top: 0;
+  transform-origin: top;
+}
+.intro-bar-bottom {
+  bottom: 0;
+  transform-origin: bottom;
+}
+.intro-bar-top::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(0, 168, 255, 0.85), transparent);
+  opacity: 0.5;
+}
+.intro-bar-bottom::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(0, 168, 255, 0.85), transparent);
+  opacity: 0.5;
+}
+
+/* Bright exposure flash — makes the exit unmistakable */
+@keyframes introFlash {
+  0% { opacity: 0; }
+  30% { opacity: 0.6; }
+  100% { opacity: 0; }
+}
+.intro-flash {
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(circle at 50% 50%, rgba(189, 233, 255, 0.95), rgba(0, 168, 255, 0.3) 55%, transparent 78%);
+  opacity: 0;
+}
+.intro-flash-on {
+  animation: introFlash 0.26s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-letter,
+  .intro-beam,
+  .intro-beam-head,
+  .intro-spark-l,
+  .intro-spark-r,
+  .intro-grow,
+  .intro-fade-up,
+  .intro-emblem,
+  .intro-logo-settle,
+  .intro-logo-halo,
+  .intro-aurora,
+  .intro-tick,
+  .intro-star,
+  .intro-ray,
+  .intro-scan-bar,
+  .intro-power,
+  .intro-pan,
+  .intro-baseline,
+  .intro-hex,
+  .intro-hex-node,
+  .intro-sheen,
+  .intro-emblem-corner,
+  .intro-cursor,
+  .intro-bar,
+  .intro-flash {
+    animation: none !important;
+    opacity: 1 !important;
+    clip-path: none !important;
+    transform: none !important;
+  }
+  .intro-bar {
+    opacity: 0 !important;
+    transition: none !important;
+  }
+  .intro-hero-exit {
+    transition: none !important;
+  }
 }
 
 /* Rugged Industrial Aerospace HUD Frame Styling */
