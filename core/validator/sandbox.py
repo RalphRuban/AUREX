@@ -548,7 +548,29 @@ class Sandbox:
         if os.path.isabs(test_file_path):
             return safe_filename(test_file_path)
         return validate_file_path(test_file_path).replace(os.sep, "/")
-    
+
+    @staticmethod
+    def _make_container_readable(root: str) -> None:
+        """Relax workspace permissions so the container user can read /app.
+
+        Temp dirs default to 0700 and files to 0600, but the sandbox image
+        runs as USER sandboxuser; on Linux the read-only bind mount would
+        then be unreadable (Errno 13) for every run. The mount is read-only
+        and the container is network- and capability-restricted, so 0755/0644
+        is the intended exposure.
+        """
+        if os.name == "nt":
+            return  # Windows bind mounts do not enforce POSIX modes
+        try:
+            os.chmod(root, 0o755)
+            for dirpath, dirnames, filenames in os.walk(root):
+                for name in dirnames:
+                    os.chmod(os.path.join(dirpath, name), 0o755)
+                for name in filenames:
+                    os.chmod(os.path.join(dirpath, name), 0o644)
+        except OSError as exc:
+            logger.warning(f"Sandbox: could not relax workspace permissions: {exc}", "SANDBOX")
+
     def _build_docker_cmd(self, container_name: str, mount_path: str, entry_point: list, network: str | None = None, read_only: bool | None = None) -> list:
         dc = config.sandbox.docker
         cmd = [
@@ -742,6 +764,7 @@ class Sandbox:
 
                 mount_path = temp_dir.replace(os.sep, "/")
 
+                self._make_container_readable(temp_dir)
                 entry_point = ["python", f"/app/{script_name}"]
                 cmd = self._build_docker_cmd(container_name, mount_path, entry_point, network=network)
                 result = self._do_docker_run(cmd, container_name, mode=mode)
@@ -847,6 +870,7 @@ class Sandbox:
                         "SANDBOX"
                     )
 
+                self._make_container_readable(temp_dir)
                 entry_point = ["python", "-m", "pytest", f"/app/{safe_name}", "-v"]
                 cmd = self._build_docker_cmd(container_name, mount_path, entry_point, network=network)
 
