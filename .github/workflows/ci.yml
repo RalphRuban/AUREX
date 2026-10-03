@@ -22,7 +22,9 @@ jobs:
           pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Lint (ruff)
-        run: ruff check .
+        run: |
+          ruff --version
+          ruff check . --output-format=full
 
       - name: Type check (mypy)
         run: mypy .
