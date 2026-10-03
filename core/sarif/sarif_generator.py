@@ -6,6 +6,7 @@ Converts AUREX analysis results to SARIF 2.1.0 format for GitHub Code Scanning.
 import hashlib
 import json
 import os
+import re
 from datetime import timedelta
 from typing import Any
 
@@ -508,8 +509,11 @@ class SARIFGenerator:
         if not path or path == "unknown":
             return path
         # Preserve relative paths (e.g. 'src/utils/helpers.py')
-        if os.path.isabs(path):
-            return os.path.basename(path)
+        # Treat Windows drive-letter paths (e.g. 'C:\\Users\\...\\demo.py') as
+        # absolute even on POSIX hosts: the scanner may emit Windows-style
+        # temp paths regardless of the OS it runs on.
+        if os.path.isabs(path) or re.match(r"^[A-Za-z]:", path):
+            return os.path.basename(path.replace("\\", "/"))
         return path
 
     def _build_invocation(self, analysis_result: AnalysisResult) -> dict[str, Any] | None:

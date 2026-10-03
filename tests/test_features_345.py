@@ -390,8 +390,11 @@ class TestQualityConfig:
 
 class TestInputValidation:
     def test_validate_file_path_normal(self):
+        import os
+
         from core.utils.validation import validate_file_path
-        assert validate_file_path("src/main.py") == "src\\main.py"
+        # validate_file_path returns the platform-native normalized form.
+        assert validate_file_path("src/main.py") == os.path.normpath("src/main.py")
 
     def test_validate_file_path_null_byte(self):
         from core.utils.validation import InputValidationError, validate_file_path

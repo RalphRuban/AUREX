@@ -10,7 +10,6 @@ or signals that the stage should be skipped with a clear reason.
 """
 
 import ast
-import os
 import re
 
 
@@ -46,7 +45,10 @@ def _module_names(source_code: str) -> set:
 
 def _source_module_path(source_filename: str) -> str:
     """Derive the importable module path of *source_filename* (no ``.py``)."""
-    normalized = source_filename.replace(os.sep, "/")
+    # Treat both POSIX and Windows separators as directory boundaries:
+    # module names never contain backslashes, and the scanner may feed
+    # Windows-style filenames on any host OS.
+    normalized = source_filename.replace("\\", "/")
     normalized = normalized.removesuffix(".py")
     return normalized.replace("/", ".").strip(".")
 
