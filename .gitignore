@@ -3,6 +3,7 @@
 # 1. Credentials & Secrets (CRITICAL)
 .env
 .env.*
+!.env.example
 *.pem
 secrets/
 
