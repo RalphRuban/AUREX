@@ -33,7 +33,7 @@
 Instead of treating an AI-generated patch as automatically trustworthy, AUREX separates the workflow into distinct stages:
 
 <p align="center">
-  <img src="./assets/block_diagram.png" alt="AUREX architecture diagram generated with Mermaid" width="1100">
+  <img src="./assets/architecture.png" alt="AUREX architecture diagram generated with Mermaid" width="1100">
 </p>
 
 The result is a security workflow designed around **detection → remediation → validation → risk assessment**, rather than detection alone.
