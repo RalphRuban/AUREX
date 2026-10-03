@@ -6,3 +6,7 @@ mypy==2.3.0
 types-requests==2.33.0.20260712
 types-waitress==3.0.1.20260724
 types-PyYAML==6.0.12.20260724
+# Used by tools/make_aurex_logo.py (dev-only); also needed for mypy to resolve
+# PIL/numpy imports that are absent from CI's otherwise-pinned environment.
+Pillow==12.2.0
+numpy==2.4.2
