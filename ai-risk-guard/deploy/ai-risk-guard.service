@@ -1,6 +1,6 @@
 [Unit]
 Description=AI Risk Guard - GitHub PR security scanner
-Documentation=https://github.com/RalphRuban/ai-risk-guard
+Documentation=https://github.com/RalphRuban/AUREX
 After=network-online.target docker.service
 Wants=network-online.target docker.service
 

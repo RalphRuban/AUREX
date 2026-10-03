@@ -28,7 +28,7 @@
 #
 # Example:
 #   sudo HOSTNAME=my-app.ngrok-free.app \
-#        GITHUB_REPO=https://github.com/RalphRuban/ai-risk-guard.git \
+#        GITHUB_REPO=https://github.com/RalphRuban/AUREX.git \
 #        NGROK_AUTHTOKEN=2abc... \
 #        DEPLOY_SSH_PUBKEY="$(cat ~/.ssh/ai-risk-guard-deploy.pub)" \
 #        REQUIRED_ENV_FILE=/home/azureuser/env.secrets \

@@ -281,7 +281,7 @@ class SARIFGenerator:
         information_uri = (
             os.environ.get("SARIF_INFORMATION_URI")
             or config.app.deployment.sarif_information_uri
-            or "https://github.com/RalphRuban/ai-risk-guard"
+            or "https://github.com/RalphRuban/AUREX"
         )
         return {
             "driver": {
