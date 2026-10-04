@@ -198,6 +198,9 @@ def csrf_protect():
         # not by the session cookie.
         if request.path.startswith("/webhook"):
             return None
+        # Marketplace webhook uses dedicated secret for signature verification
+        if request.path.startswith("/marketplace/webhook"):
+            return None
         # CI-runner validation endpoints are machine-to-machine and
         # authenticated by the X-CI-Validation-Secret shared-secret header.
         if request.path.startswith("/api/ci-validation/"):
@@ -399,6 +402,7 @@ def is_ignored_path(file_path: str) -> bool:
 # =========================================================
 
 GITHUB_WEBHOOK_SECRET = os.environ.get("GITHUB_WEBHOOK_SECRET", "")
+GITHUB_MARKETPLACE_WEBHOOK_SECRET = os.environ.get("GITHUB_MARKETPLACE_WEBHOOK_SECRET", "")
 GITHUB_APP_ID = os.environ.get("GITHUB_APP_ID", "")
 GITHUB_PRIVATE_KEY = os.environ.get("GITHUB_PRIVATE_KEY", "")
 FRONTEND_ORIGIN = os.environ.get("FRONTEND_ORIGIN", "").rstrip("/")
@@ -468,6 +472,7 @@ def _check_required_env():
     for var, note in (
         ("GEMINI_API_KEY", "LLM patch generation will fail"),
         ("GITHUB_APP_SLUG", "the install-app banner link will be hidden"),
+        ("GITHUB_MARKETPLACE_WEBHOOK_SECRET", "Marketplace webhook verification will fail"),
     ):
         if _is_placeholder_value(os.environ.get(var)):
             logger.warning(f"Missing env var {var} — {note}", "STARTUP")
@@ -654,6 +659,23 @@ def verify_signature(payload, signature):
         ).hexdigest()
     )
     return hmac.compare_digest(expected_signature, signature)
+
+
+def verify_marketplace_signature(payload: bytes) -> bool:
+    """Verify GitHub Marketplace webhook signature using dedicated secret."""
+    secret = GITHUB_MARKETPLACE_WEBHOOK_SECRET
+    if not secret:
+        logger.warning("GITHUB_MARKETPLACE_WEBHOOK_SECRET not set — rejecting request", "AUTH")
+        return False
+    signature = request.headers.get("X-Hub-Signature-256", "")
+    if not signature.startswith("sha256="):
+        return False
+    expected = "sha256=" + hmac.new(
+        secret.encode("utf-8"),
+        payload,
+        hashlib.sha256,
+    ).hexdigest()
+    return hmac.compare_digest(signature, expected)
 
 
 # =========================================================
@@ -2362,6 +2384,34 @@ def github_webhook():
         return jsonify({"status": "ignored"})
     except Exception as error:
         logger.error(f"Webhook reception failed: {error}", "WEBHOOK")
+        return jsonify({"error": "Internal server error"}), 500
+
+
+@app.route("/marketplace/webhook", methods=["POST"])
+def marketplace_webhook():
+    """Handle GitHub Marketplace purchase lifecycle events."""
+    try:
+        payload = request.get_data()
+
+        if not verify_marketplace_signature(payload):
+            logger.error("Invalid Marketplace webhook signature", "MARKETPLACE")
+            return jsonify({"error": "Invalid webhook signature"}), 401
+
+        event = request.headers.get("X-GitHub-Event", "")
+        data = request.get_json(silent=True) or {}
+
+        if event == "marketplace_purchase":
+            action = data.get("action")
+            # For now, AUREX is a free Marketplace application.
+            # Record/log the installation lifecycle event.
+            logger.info(
+                f"Marketplace purchase event: action={action}",
+                "MARKETPLACE",
+            )
+
+        return jsonify({"ok": True}), 200
+    except Exception as error:
+        logger.error(f"Marketplace webhook reception failed: {error}", "MARKETPLACE")
         return jsonify({"error": "Internal server error"}), 500
 
 
